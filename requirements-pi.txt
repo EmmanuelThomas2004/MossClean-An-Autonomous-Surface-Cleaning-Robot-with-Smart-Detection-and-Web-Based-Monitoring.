@@ -1,0 +1,12 @@
+# MossClean Raspberry Pi dependencies
+#
+# Hardware-specific packages such as Picamera2 may be installed through
+# Raspberry Pi OS / apt when required by the target system.
+
+numpy
+opencv-python
+smbus2
+gpiozero
+ultralytics
+flask
+werkzeug
