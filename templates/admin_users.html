@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <div class="sidebar">
+        <h3 style="color:var(--green);">MOSS OS</h3>
+
+        <a href="/dashboard" class="nav">Dashboard</a>
+        <a href="/admin/users" class="nav active">Users</a>
+
+        <div style="flex:1;"></div>
+
+        <a href="/logout" class="nav" style="color:var(--red);">Logout</a>
+    </div>
+
+    <div class="content">
+        <h2>User Database</h2>
+
+        <div class="glass">
+            <table style="width:100%; color:white;">
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+
+                {% for u in users %}
+                <tr>
+                    <td>{{u['id']}}</td>
+                    <td>{{u['username']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td>{{u['role']}}</td>
+
+                    <td>
+                        <a href="/admin/view/{{u['id']}}"
+                           style="background:var(--green); color:black;
+                                  padding:5px 10px; border-radius:4px;
+                                  text-decoration:none; font-weight:bold;
+                                  font-size:12px;">
+                            MONITOR
+                        </a>
+
+                        <a href="/admin/edit/{{u['id']}}"
+                           style="color:#007bff; margin-left:10px;">
+                            Edit
+                        </a>
+
+                        {% if u['role']!='admin' %}
+                        <a href="/admin/delete/{{u['id']}}"
+                           style="color:red; margin-left:10px;">
+                            Del
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
