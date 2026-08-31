@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="alert" style="display:none; padding:15px; position:fixed; top:0; left:0; width:100%; text-align:center; font-weight:bold; z-index:999;"></div>
+
+<div class="layout">
+    <div class="content" style="display:flex; flex-direction:column; align-items:center;">
+
+        <div class="glass" style="width:90%; max-width:800px; margin-bottom:20px; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h2 style="color:var(--green); margin:0;">
+                    Target: {{ user['username'].upper() }}
+                </h2>
+
+                <span style="color:#aaa; font-size:12px;">
+                    ID: #{{ user['id'] }} | Role: {{ user['role'].upper() }}
+                </span>
+            </div>
+
+            <div style="text-align:right;">
+                <a href="/admin/users"
+                   style="background:#444; color:white; padding:8px 15px;
+                          border-radius:5px; text-decoration:none; font-size:12px;">
+                    Back to List
+                </a>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; width:100%; max-width:1000px;">
+
+            <div class="glass" style="flex:1; min-width:300px; text-align:center;">
+                <h3 style="color:var(--green); margin-top:0;">
+                    Live Surveillance
+                </h3>
+
+                <div style="border:2px solid #333; border-radius:8px; overflow:hidden; display:inline-block;">
+                    <img src="{{ url_for('video_feed') }}"
+                         style="width:100%; display:block;">
+                </div>
+
+                <div id="op_display"
+                     style="text-align:left; margin-top:5px; color:#ffcc00;
+                            font-weight:bold; font-size:14px;">
+                    Active Operator: ...
+                </div>
+
+                <div style="margin-top:20px; padding-top:20px; border-top:1px solid #333;">
+                    <h4 style="color:#aaa; margin:0 0 10px 0;">
+                        Override Controls
+                    </h4>
+
+                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+                        <button onclick="act('start')"
+                                style="width:auto; background:#28a745; font-size:12px;">
+                            START
+                        </button>
+
+                        <button onclick="act('stop')"
+                                style="width:auto; background:#ffc107; color:black; font-size:12px;">
+                            PAUSE
+                        </button>
+
+                        <button onclick="act('shutdown')"
+                                style="width:auto; background:var(--red); color:white; font-size:12px;">
+                            OFF
+                        </button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; width:150px; margin:0 auto;">
+                        <div></div>
+
+                        <button onmousedown="mv('forward')" onmouseup="mv('stop')">
+                            ▲
+                        </button>
+
+                        <div></div>
+
+                        <button onmousedown="mv('left')" onmouseup="mv('stop')">
+                            ◀
+                        </button>
+
+                        <button onclick="mv('stop')" style="background:#444;">
+                            ■
+                        </button>
+
+                        <button onmousedown="mv('right')" onmouseup="mv('stop')">
+                            ▶
+                        </button>
+
+                        <div></div>
+
+                        <button onmousedown="mv('backward')" onmouseup="mv('stop')">
+                            ▼
+                        </button>
+
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass" style="flex:1; min-width:300px;">
+                <h3 style="color:#ffcc00; margin-top:0;">
+                    Alert History
+                </h3>
+
+                <table style="width:100%; color:white; text-align:center; border:1px solid #333; border-collapse:collapse;">
+                    <tr style="background:#222;">
+                        <th style="padding:10px;">Alert Type</th>
+                        <th>Count</th>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:12px; color:red; border-bottom:1px solid #333;">
+                            THEFT
+                        </td>
+                        <td style="font-weight:bold; font-size:1.2em; border-bottom:1px solid #333;">
+                            {{ analytics['theft'] }}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:12px; color:orange; border-bottom:1px solid #333;">
+                            STUCK
+                        </td>
+                        <td style="font-weight:bold; font-size:1.2em; border-bottom:1px solid #333;">
+                            {{ analytics['stuck'] }}
+                        </td>
+                    </tr>
+
+                    <tr style="background:#333; font-weight:bold;">
+                        <td style="padding:12px;">TOTAL</td>
+                        <td>{{ analytics['total'] }}</td>
+                    </tr>
+                </table>
+
+                <h4 style="color:#aaa; margin-top:30px;">
+                    User Details
+                </h4>
+
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; text-align:left;">
+                    <p style="margin:5px 0;">
+                        <strong>Email:</strong> {{ user['email'] }}
+                    </p>
+
+                    <p style="margin:5px 0;">
+                        <strong>Phone:</strong> {{ user['phone'] }}
+                    </p>
+
+                    <p style="margin:5px 0;">
+                        <strong>Created:</strong> {{ user['created_at'] }}
+                    </p>
+                </div>
+
+                <a href="/admin/edit/{{ user['id'] }}"
+                   style="display:block; text-align:center; margin-top:20px; color:#007bff;">
+                    Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function act(c) {
+        fetch('/action/' + c);
+    }
+
+    function mv(d) {
+        fetch('/move/' + d);
+    }
+
+    setInterval(() => {
+        fetch('/status')
+            .then(r => r.json())
+            .then(d => {
+
+                // UPDATE ALERT BANNER
+                let a = document.getElementById('alert');
+
+                if (d.theft) {
+                    a.innerText = "🚨 THEFT DETECTED!";
+                    a.style.display = 'block';
+                    a.style.background = 'red';
+                    a.style.color = 'white';
+                }
+                else if (d.stuck) {
+                    a.innerText = "⚠️ ROBOT STUCK!";
+                    a.style.display = 'block';
+                    a.style.background = 'orange';
+                    a.style.color = 'black';
+                }
+                else {
+                    a.style.display = 'none';
+                }
+
+                // Update Operator Name
+                document.getElementById('op_display').innerText =
+                    "Active Operator: " + d.operator;
+            });
+    }, 1000);
+</script>
+
+{% endblock %}
