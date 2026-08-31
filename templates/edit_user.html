@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <div class="content" style="display:flex; justify-content:center; align-items:center;">
+        <div class="glass" style="width:400px;">
+            <h2>Edit {{ user['username'] }}</h2>
+
+            <form method="POST">
+                <input type="text"
+                       name="username"
+                       value="{{user['username']}}"
+                       required>
+
+                <input type="text"
+                       name="phone"
+                       value="{{user['phone']}}"
+                       required>
+
+                <input type="email"
+                       name="email"
+                       value="{{user['email']}}"
+                       required>
+
+                <select name="role">
+                    <option value="user"
+                        {% if user['role']=='user' %}selected{% endif %}>
+                        User
+                    </option>
+
+                    <option value="admin"
+                        {% if user['role']=='admin' %}selected{% endif %}>
+                        Admin
+                    </option>
+                </select>
+
+                <input type="password"
+                       name="password"
+                       placeholder="New Password (Optional)">
+
+                <button type="submit">SAVE</button>
+            </form>
+
+            <br>
+
+            <a href="/admin/users" style="color:#aaa;">
+                Cancel
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
