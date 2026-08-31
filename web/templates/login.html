@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="layout">
+    <div class="content" style="display:flex; justify-content:center; align-items:center;">
+        <div class="glass" style="width:350px; text-align:center;">
+            <h1 style="color:var(--green); letter-spacing:2px;">MOSS OS</h1>
+            <p style="color:#aaa;">SECURE LOGIN</p>
+
+            <form method="POST">
+                <input type="text" name="username" placeholder="OPERATOR ID" required>
+                <input type="password" name="password" placeholder="PASSWORD" required>
+
+                <button type="submit" style="background:var(--green); color:black;">
+                    LOGIN
+                </button>
+            </form>
+
+            <br>
+
+            <a href="/register" style="color:#aaa; font-size:12px;">
+                Create New Operator Account
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
