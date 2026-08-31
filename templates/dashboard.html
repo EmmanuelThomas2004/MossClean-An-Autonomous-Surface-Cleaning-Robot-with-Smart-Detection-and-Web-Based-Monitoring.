@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="alert" style="display:none; padding:15px; position:fixed; top:0; width:100%; text-align:center; font-weight:bold; z-index:99;"></div>
+
+<div class="layout">
+    <div class="sidebar">
+        <h3 style="color:var(--green);">MOSS OS</h3>
+
+        <div style="background:#222; padding:10px; border-radius:8px; margin-bottom:20px;">
+            <div>{{ session['user'] }}</div>
+            <small style="color:#007bff;">{{ session['role'].upper() }}</small>
+        </div>
+
+        <a href="/dashboard" class="nav active">Dashboard</a>
+
+        {% if session['role']=='admin' %}
+            <a href="/admin/users" class="nav">Users</a>
+        {% endif %}
+
+        <div style="flex:1;"></div>
+
+        <a href="/logout" class="nav" style="color:var(--red);">Logout</a>
+    </div>
+
+    <div class="content" style="display:flex; justify-content:center; align-items:center; text-align:center;">
+
+        {% if session['role'] == 'admin' %}
+
+        <div class="glass" style="width:400px; padding:40px;">
+            <h2 style="color:var(--green);">Welcome, Admin.</h2>
+            <p style="color:#aaa;">System is active and monitoring.</p>
+            <br>
+
+            <a href="/admin/users"
+               style="background:#007bff; color:white; padding:15px 30px;
+                      border-radius:8px; text-decoration:none; font-weight:bold;
+                      font-size:16px;">
+                Manage & Monitor Users
+            </a>
+        </div>
+
+        {% else %}
+
+        <div>
+            <div class="glass" style="display:inline-block; padding:10px;">
+                <img src="{{ url_for('video_feed') }}"
+                     style="width:100%; max-width:500px; border-radius:8px;">
+
+                <div id="op_display"
+                     style="text-align:left; margin-top:5px; color:#aaa; font-size:12px;">
+                    Active Operator: ...
+                </div>
+            </div>
+
+            <div style="margin:20px 0;">
+                <button onclick="act('start')"
+                        style="width:auto; background:#28a745;">
+                    START
+                </button>
+
+                <button onclick="act('stop')"
+                        style="width:auto; background:#ffc107; color:black;">
+                    PAUSE
+                </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3,1fr);
+                        gap:10px; width:200px; margin:0 auto;">
+
+                <div></div>
+
+                <button onmousedown="mv('forward')" onmouseup="mv('stop')">
+                    ▲
+                </button>
+
+                <div></div>
+
+                <button onmousedown="mv('left')" onmouseup="mv('stop')">
+                    ◀
+                </button>
+
+                <button onclick="mv('stop')" style="background:#444;">
+                    ■
+                </button>
+
+                <button onmousedown="mv('right')" onmouseup="mv('stop')">
+                    ▶
+                </button>
+
+                <div></div>
+
+                <button onmousedown="mv('backward')" onmouseup="mv('stop')">
+                    ▼
+                </button>
+
+                <div></div>
+            </div>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    function act(c) {
+        fetch('/action/' + c);
+    }
+
+    function mv(d) {
+        fetch('/move/' + d);
+    }
+
+    setInterval(() => {
+        fetch('/status')
+            .then(r => r.json())
+            .then(d => {
+
+                // Update Operator Name
+                let op = document.getElementById('op_display');
+
+                if (op) {
+                    op.innerText = "Active Operator: " + d.operator;
+                }
+
+                // Update Alert Banner
+                let a = document.getElementById('alert');
+
+                if (d.theft) {
+                    a.innerText = "🚨 THEFT DETECTED!";
+                    a.style.display = 'block';
+                    a.style.background = 'red';
+                    a.style.color = 'white';
+                }
+                else if (d.stuck) {
+                    a.innerText = "⚠️ ROBOT STUCK!";
+                    a.style.display = 'block';
+                    a.style.background = 'orange';
+                    a.style.color = 'black';
+                }
+                else {
+                    a.style.display = 'none';
+                }
+            });
+    }, 1000);
+</script>
+
+{% endblock %}
