@@ -1,5 +1,10 @@
 # MossClean
 
+<p align="center">
+  <img src="./mossclean-cover.png" alt="MossClean Autonomous Surface Cleaning Robot" width="100%">
+</p>
+
+
 ### An Autonomous Surface Cleaning Robot with Smart Detection and Web-Based Monitoring
 
 > **Edge AI • Autonomous Navigation • Precision Cleaning • IoT Monitoring**
@@ -10,7 +15,7 @@ MossClean is an autonomous mobile robotic platform designed to identify moss on 
 
 ## ✨ Project at a Glance
 
-| Layer | Implementation |
+| **Layer** | **Implementation** |
 |---|---|
 | Edge Computer | Raspberry Pi 4 Model B (4 GB) |
 | Vision | OV5647 5 MP camera |
@@ -28,8 +33,6 @@ MossClean is an autonomous mobile robotic platform designed to identify moss on 
 | Monitoring | Flask web dashboard + live telemetry |
 | Alerts | SMTP anomaly/security notifications |
 
-The project documentation specifies the Raspberry Pi, camera, navigation sensors, motor driver, pump and monitoring stack used by MossClean. fileciteturn3file1L81-L151
-
 ---
 
 ## 🧠 System Architecture
@@ -39,63 +42,69 @@ The project documentation specifies the Raspberry Pi, camera, navigation sensors
                     │       MossClean Robot      │
                     └─────────────┬─────────────┘
                                   │
-                 ┌────────────────┼────────────────┐
-                 │                │                │
-                 ▼                ▼                ▼
-          ┌────────────┐   ┌────────────┐   ┌─────────────┐
-          │ OV5647     │   │ Ultrasonic │   │ IMU +       │
-          │ Camera     │   │ Sensors    │   │ Encoders    │
-          └─────┬──────┘   └─────┬──────┘   └──────┬──────┘
-                │                │                 │
-                ▼                ▼                 ▼
-          ┌────────────┐   ┌────────────────────────────┐
-          │ YOLOv11n   │   │ World Model + Odometry     │
-          │ Moss AI    │   │ Occupancy Grid + Safety    │
-          └─────┬──────┘   └─────────────┬──────────────┘
-                │                        │
-                └──────────┬─────────────┘
-                           ▼
-                 ┌────────────────────┐
-                 │ Raspberry Pi       │
-                 │ Control Layer      │
-                 └─────────┬──────────┘
-                           │
-              ┌────────────┼─────────────┐
-              ▼            ▼             ▼
-        ┌──────────┐ ┌───────────┐ ┌──────────────┐
-        │ Motors   │ │ Pump/Relay│ │ Telemetry    │
-        │ + L298N  │ │ Sprayer   │ │ + Alerts     │
-        └──────────┘ └───────────┘ └──────┬───────┘
-                                          ▼
-                                ┌──────────────────┐
-                                │ MossClean Web OS │
-                                │ Monitor / Control│
-                                └──────────────────┘
+                   ┌──────────────┼──────────────┐
+                   │              │              │
+                   ▼              ▼              ▼
+            ┌────────────┐ ┌────────────┐ ┌─────────────┐
+            │ OV5647     │ │ Ultrasonic │ │ IMU +       │
+            │ Camera     │ │ Sensors    │ │ Encoders    │
+            └─────┬──────┘ └─────┬──────┘ └──────┬──────┘
+                  │              │               │
+                  ▼              ▼               ▼
+            ┌────────────┐ ┌────────────────────────────┐
+            │ YOLOv11n   │ │ World Model + Odometry     │
+            │ Moss AI    │ │ Occupancy Grid + Safety    │
+            └─────┬──────┘ └─────────────┬──────────────┘
+                  │                      │
+                  └──────────┬───────────┘
+                             ▼
+                    ┌────────────────────┐
+                    │ Raspberry Pi       │
+                    │ Control Layer      │
+                    └─────────┬──────────┘
+                              │
+                  ┌───────────┼─────────────┐
+                  ▼           ▼             ▼
+            ┌──────────┐ ┌───────────┐ ┌──────────────┐
+            │ Motors   │ │ Pump/Relay│ │ Telemetry    │
+            │ + L298N  │ │ Sprayer   │ │ + Alerts     │
+            └──────────┘ └───────────┘ └──────┬───────┘
+                                              ▼
+                                     ┌──────────────────┐
+                                     │ MossClean Web OS │
+                                     │ Monitor / Control│
+                                     └──────────────────┘
 ```
 
-The implementation keeps camera/YOLO/pump functionality inside a dedicated `MossController`, separated from navigation, world-model and sensor-polling components. fileciteturn1file3L187-L229
+The implementation keeps camera/YOLO/pump functionality inside the MossController, separated from navigation, world-model and sensor-polling components.
 
 ---
 
 ## 🚀 Core Intelligence
 
 ### 1. Moss Detection
-The camera captures frames and the YOLO model performs inference using a configurable confidence threshold. A detected moss patch is saved as an annotated image and can trigger the spray sequence. The current implementation uses a 0.60 confidence threshold and a 640×640 inference image size. fileciteturn1file9L491-L528
+
+The camera captures frames and the YOLO model performs inference using a configurable confidence threshold. A detected moss patch is saved as an annotated image and can trigger the spray sequence. The current implementation uses a 0.60 confidence threshold and a 640×640 inference image size.
 
 ### 2. Autonomous Coverage
+
 MossClean uses a deterministic lawnmower-style coverage pattern to systematically traverse the operating area rather than relying on random movement.
 
 ### 3. GPS-Free Navigation
-Wheel encoder ticks and IMU yaw are used to estimate robot position and heading. Sensor observations are projected into a 2D grid to maintain environmental knowledge. fileciteturn1file7L402-L420
+
+Wheel encoder ticks and IMU yaw are used to estimate robot position and heading. Sensor observations are projected into a 2D grid to maintain environmental knowledge.
 
 ### 4. Obstacle Avoidance
-Four ultrasonic sensors provide directional distance information. The navigation layer can stop, evaluate lateral clearance, bypass an obstacle, and resume its coverage path. fileciteturn1file8L459-L467
+
+Four ultrasonic sensors provide directional distance information. The navigation layer can stop, evaluate lateral clearance, bypass an obstacle, and resume its coverage path.
 
 ### 5. Precision Spray Actuation
-When moss is detected, the robot stops and activates the pump for the configured spray duration before resuming navigation. fileciteturn1file9L530-L561
+
+When moss is detected, the robot stops and activates the pump for the configured spray duration before resuming navigation.
 
 ### 6. Web Monitoring & Security
-The project documentation describes a Flask-based command center with live video, telemetry, role-based access control and SMTP alerts for events such as theft or a stuck condition. fileciteturn3file0L20-L27
+
+The project includes a Flask-based command center with live video, telemetry, role-based access control and SMTP alerts for events such as theft or a stuck condition.
 
 ---
 
@@ -109,7 +118,7 @@ The project report records the following YOLOv11n validation results:
 - **Configured live confidence threshold:** 60%
 - **Reported Raspberry Pi inference:** approximately 130–160 ms/frame
 
-These figures are reported as proof-of-concept validation results in the project report. fileciteturn1file2L111-L136
+These figures are reported as proof-of-concept validation results in the project report.
 
 ---
 
@@ -120,33 +129,38 @@ MossClean/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── requirements-pi.txt
-├── requirements-dev.txt
+├── .env.example
+├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
-├── CHANGELOG.md
-├── src/
-│   └── mossclean_robot.py
+├── mossclean-cover.png
+├── mossclean-robot.jpeg
+├── mossclean-ai-detection.jpeg
 ├── config/
 │   └── README.md
-├── tests/
-│   └── README.md
 ├── docs/
-│   ├── MossClean_Project_Report.pdf
-│   └── MossClean_Phase2_Presentation.pptx
-└── media/
-    ├── mossclean_robot_hardware.jpeg
-    ├── moss_detection_live.jpeg
-    ├── moss_os_login.jpeg
-    ├── moss_os_users.jpeg
-    └── moss_os_dashboard.jpeg
+├── src/
+│   ├── README.md
+│   └── mossclean_robot.py
+├── templates/
+└── web/
+    ├── README.md
+    ├── mossclean_server.py
+    ├── static/
+    │   ├── css/
+    │   └── images/
+    │       ├── .gitkeep
+    │       ├── mossclean-login-screen.jpeg
+    │       ├── mossclean-user-database.jpeg
+    │       └── mossclean-user-monitoring.jpeg
+    └── templates/
 ```
 
 ---
 
 ## 🛠️ Raspberry Pi Setup
 
-The main control program is intended for Raspberry Pi hardware and imports GPIO, OpenCV, SMBus, gpiozero, Picamera2 and Ultralytics YOLO components. fileciteturn0file1L25-L32
+The main control program is intended for Raspberry Pi hardware and imports GPIO, OpenCV, SMBus, gpiozero, Picamera2 and Ultralytics YOLO components.
 
 ```bash
 git clone <YOUR_REPOSITORY_URL>
@@ -165,7 +179,7 @@ python3 src/mossclean_robot.py
 
 ## 🔌 Hardware Pin Highlights
 
-The implementation defines four ultrasonic sensor channels, two PWM motor channels, motor direction pins, encoder inputs, IMU communication and the pump relay in its configuration layer. The pump relay is assigned to **BCM GPIO 4 / physical pin 7**. fileciteturn0file1L52-L62
+The implementation defines four ultrasonic sensor channels, two PWM motor channels, motor direction pins, encoder inputs, IMU communication and the pump relay in its configuration layer. The pump relay is assigned to **BCM GPIO 4 / physical pin 7**.
 
 ---
 
@@ -191,23 +205,23 @@ Before making this repository public, review the included project report/present
 
 ### Physical Prototype
 
-![MossClean Robot](media/mossclean_robot_hardware.jpeg)
+![MossClean Robot](./mossclean-robot.jpeg)
 
 ### Real-Time Moss Detection
 
-![Moss Detection](media/moss_detection_live.jpeg)
+![Moss Detection](./mossclean-ai-detection.jpeg)
 
 ### MossClean OS — Login
 
-![MossClean Login](media/moss_os_login.jpeg)
+![MossClean Login](./web/static/images/mossclean-login-screen.jpeg)
 
 ### MossClean OS — User Management
 
-![MossClean Users](media/moss_os_users.jpeg)
+![MossClean Users](./web/static/images/mossclean-user-database.jpeg)
 
 ### MossClean OS — Monitoring Dashboard
 
-![MossClean Dashboard](media/moss_os_dashboard.jpeg)
+![MossClean Dashboard](./web/static/images/mossclean-user-monitoring.jpeg)
 
 ---
 
@@ -221,13 +235,19 @@ Before making this repository public, review the included project report/present
 6. Provide live remote monitoring and control.
 7. Detect operational/security anomalies and generate alerts.
 
-The project report frames MossClean as a scalable autonomous surface-maintenance platform combining computer vision, GPS-independent navigation, targeted spraying and IoT monitoring. fileciteturn1file0L55-L64
+The project report frames MossClean as a scalable autonomous surface-maintenance platform combining computer vision, GPS-independent navigation, targeted spraying and IoT monitoring.
 
 ---
 
 ## 🔭 Future Roadmap
 
-The project documentation identifies several future upgrades, including solar-assisted operation, LiDAR/SLAM, variable-rate chemical application, automated docking/self-charging and multi-robot coordination.
+The project documentation identifies several future upgrades:
+
+- Solar-assisted operation to extend runtime.
+- LiDAR/SLAM for high-definition mapping.
+- Variable-rate chemical application based on moss density.
+- Automated docking and self-charging.
+- Multi-robot coordination through IoT mesh networks.
 
 ---
 
@@ -240,23 +260,24 @@ The project documentation identifies several future upgrades, including solar-as
 - Hari Govind S
 - Rijo Joshy
 
-
-
 ---
 
 ## 📄 Documentation
 
-The complete Phase-II project report and presentation are included under `docs/` for reference.
+The complete project documentation is maintained under `docs/`.
 
 ---
 
 ## ⭐ Why MossClean?
 
-MossClean brings together **robotics + edge AI + autonomous navigation + targeted actuation + IoT monitoring** into one integrated prototype. The goal is not simply to build a cleaning rover, but to demonstrate a complete edge-intelligent robotic workflow from perception → decision → navigation → actuation → monitoring.
+MossClean brings together **robotics + edge AI + autonomous navigation + targeted actuation + IoT monitoring** into one integrated prototype.
+
+The goal is not simply to build a cleaning rover, but to demonstrate a complete edge-intelligent robotic workflow:
+
+**Perception → Decision → Navigation → Actuation → Monitoring**
 
 ---
 
 ## 📜 License
 
 Released under the MIT License. See `LICENSE`.
-
